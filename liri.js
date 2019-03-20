@@ -7,11 +7,14 @@ var axios = require("axios");
 var moment = require('moment');
 var fs = require("fs");
 // Spotify
+var Spotify = require('node-spotify-api');
 var spotify = new Spotify(keys.spotify);
 
 // OMDB
-var movieName = process.argv[3]
 if (process.argv[2] === "movie-this") {
+
+    var movieName = process.argv.slice(3).join(" ");
+
     axios.get("http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&apikey=trilogy").then(
         function(response) {
         //   console.log(response);
@@ -29,10 +32,11 @@ if (process.argv[2] === "movie-this") {
 
 
 // Bands In Town
-var artist = process.argv[3];
-var queryURL = "https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp";
-
 if (process.argv[2] === "concert-this") {
+
+    let artist = process.argv.slice(3).join("+"); 
+    let queryURL = "https://rest.bandsintown.com/artists/" + artist + "/events?app_id=codingbootcamp";
+
     axios.get(queryURL).then(function(response) {
         //   console.log(response.data[0].venue);
         for (let i = 0; i < response.data.length; i++) {
@@ -63,58 +67,79 @@ if (process.argv[2] === "concert-this") {
 
 if (process.argv[2] === "spotify-this-song") {
 
-    let songName = "";
+    let songName = process.argv.slice(3).join("+");
+    // console.log(songName);
 
-    for (let i = 3; i < process.argv.length; i++) {
-        if (i > 2 && i < process.argv.length) {
-            songName = songName + "+" + process.argv[i];
-        }
-        else {
-          songName += process.argv[i];
-        }
+    if(process.argv[2] === "spotify-this-song"){
+        spotify.search({ type: 'track', query: songName, limit: 1 }, function(err, data) {
+            if (err) {
+            fs.appendFileSync('log.txt', `Error occurred: ${err}`, 'utf8');
+            return console.log(`Error occurred: ${err}`);
+            }
+        
+            for (let i = 0; i < data.tracks.items.length; i++) {
+                console.log(`
+                Song Title: ${data.tracks.items[i].name}`);
+                fs.appendFileSync('log.txt', `
+                Song Title: ${data.tracks.items[i].name}`, 'utf8'); 
+                
+                console.log(`
+                Album Title: ${data.tracks.items[i].album.name}`);
+                fs.appendFileSync('log.txt', `
+                Album Title: ${data.tracks.items[i].album.name}`, 'utf8');
+                
+                console.log(`
+                Artist(s) Name: ${data.tracks.items[i].artists[0].name}`);
+                fs.appendFileSync('log.txt', `
+                Artist(s) Name: ${data.tracks.items[i].artists[0].name}`, 'utf8');
+                
+                console.log(`
+                Preview URL: ${data.tracks.items[i].preview_url}`);
+                fs.appendFileSync('log.txt', `
+                Preview URL: ${data.tracks.items[i].preview_url}
+                /n`, 'utf8');
+            }
+            });
+    } else { //The Sign by Ace of Base
+        spotify.search({ type: 'track', query: 'The Sign', limit: 1 }, function(err, data) {
+            if (err) {
+                fs.appendFileSync('log.txt', `
+                Error occurred: ${err}`, 'utf8');
+                return console.log(`
+                Error occurred: ${err}`);
+            }
+        
+            console.log(`You did not enter a song title. Here is a recommendation:`);
+        
+            for (let i = 0; i < data.tracks.items.length; i++) {
+                if (data.tracks.items[i].artists[0].name === "Ace of Base") {
+                    console.log(`
+                    Song Title: ${data.tracks.items[i].name}`);
+                    fs.appendFileSync('log.txt', `
+                    Song Title: ${data.tracks.items[i].name}`, 'utf8'); 
+                    
+                    console.log(`
+                    Album Title: ${data.tracks.items[i].album.name}`);
+                    fs.appendFileSync('log.txt', `
+                    Album Title: ${data.tracks.items[i].album.name}`, 'utf8');
+                    
+                    console.log(`
+                    Artist(s) Name: ${data.tracks.items[i].artists[0].name}`);
+                    fs.appendFileSync('log.txt', `
+                    Artist(s) Name: ${data.tracks.items[i].artists[0].name}`, 'utf8');
+                    
+                    console.log(`
+                    Preview URL: ${data.tracks.items[i].preview_url}`);
+                    fs.appendFileSync('log.txt', `
+                    Preview URL: ${data.tracks.items[i].preview_url}
+                    `, 'utf8');
+                }
+            }
+        });
     }
 
+}
 
-    spotify.search({ type: 'track', query: songName, limit: 3 }, function(err, data) {
-        if (err) {
-        fs.appendFileSync('log.txt', `Error occurred: ${err}`, 'utf8');
-        return console.log(`Error occurred: ${err}`);
-        }
-    
-        for (let i = 0; i < data.tracks.items.length; i++) {
-            console.log("\nSong Title: " + data.tracks.items[i].name);
-            fs.appendFileSync('log.txt', "\nSong Title: " + data.tracks.items[i].name, 'utf8'); 
-            
-            console.log("Album Title: " + data.tracks.items[i].album.name);
-            fs.appendFileSync('log.txt', "\nAlbum Title: " + data.tracks.items[i].album.name, 'utf8');
-            
-            console.log("Artist(s) Name: " + data.tracks.items[i].artists[0].name);
-            fs.appendFileSync('log.txt', "\nArtist(s) Name: " + data.tracks.items[i].artists[0].name, 'utf8');
-            
-            console.log("Preview URL: " + data.tracks.items[i].preview_url + '\n');
-            fs.appendFileSync('log.txt', "\nPreview URL: " + data.tracks.items[i].preview_url + '\n', 'utf8');
-        }
-    });
-    } else { //if no song entered, default to The Sign by Ace of Base
-    spotify.search({ type: 'track', query: 'The Sign', limit: 10 }, function(err, data) {
-        if (err) {
-        fs.appendFileSync('log.txt', 'Error occurred: ' + err, 'utf8');
-        return console.log('Error occurred: ' + err);
-        }
-    
-        console.log("\nYou did not enter a song title. Here is a recommendation:");
-    
-        for (let i = 0; i < data.tracks.items.length; i++) {
-            if (data.tracks.items[i].artists[0].name === "Ace of Base") {
-            console.log("\nSong Title: " + data.tracks.items[i].name);
-            fs.appendFileSync('log.txt', "\nSong Title: " + data.tracks.items[i].name, 'utf8'); 
-            console.log("Album Title: " + data.tracks.items[i].album.name);
-            fs.appendFileSync('log.txt', "\nAlbum Title: " + data.tracks.items[i].album.name, 'utf8');
-            console.log("Artist(s) Name: " + data.tracks.items[i].artists[0].name);
-            fs.appendFileSync('log.txt', "\nArtist(s) Name: " + data.tracks.items[i].artists[0].name, 'utf8');
-            console.log("Preview URL: " + data.tracks.items[i].preview_url + '\n');
-            fs.appendFileSync('log.txt', "\nPreview URL: " + data.tracks.items[i].preview_url + '\n', 'utf8');
-            }
-        }
-    });
-} 
+
+// Do What It Says
+

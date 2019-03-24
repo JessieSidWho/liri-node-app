@@ -182,12 +182,18 @@ if (process.argv[2] === "concert-this") {
         var dataArr = data.split(",");
 
         if (dataArr[0] === "concert-this") {
+            process.argv[2] = dataArr[0];
+            process.argv[3] = dataArr[1];
             runBands();
         }
         if (dataArr[0] === "movie-this") {
+            process.argv[2] = dataArr[0];
+            process.argv[3] = dataArr[1];
             runMovie();
         }
         if (dataArr[0] === "spotify-this-song") {
+            process.argv[2] = dataArr[0];
+            process.argv[3] = dataArr[1];
             runSpotify();
         }
     

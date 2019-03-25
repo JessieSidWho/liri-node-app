@@ -111,7 +111,7 @@ let runSpotify = function(){
             Preview URL: ${data.tracks.items[i].preview_url}`);
             fs.appendFileSync('log.txt', `
             Preview URL: ${data.tracks.items[i].preview_url}
-            /n`, 'utf8');
+            `, 'utf8');
         }
 
 
